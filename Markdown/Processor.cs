@@ -21,34 +21,52 @@ namespace Markdown
             {"__", new Tuple<string, string>("<strong>", "</strong>")}
         };
 
-        public string WrapIntoTag(string text, string tagType)
+        public IEnumerable<string> WrapIntoTag(IEnumerable<string> text, string tagType)
         {
             if (tagName.ContainsKey(tagType))
-                return tagName[tagType].Item1 + text + tagName[tagType].Item2;
+            {
+                
+                //text[0] = tagName[tagType] + text[0].Substring(tagType.Length);
+                //text[text.Length - 1] = text[text.Length - 1]
+                //    .Substring(text[text.Length - 1].Length - tagType.Length) + tagName[tagType].Item2;
+            }
             return text;
         }
 
-        public string Do(string text)
+        public IEnumerable<string> Do(IEnumerable<string> words)
         {
-
-            var lines = text.Split('\n');
-
-
-
-
-            return null;
-
+            var currentTag = string.Empty;
+            //var words = words.Split(new [] {'\n',' '});
+            var startTagInd = FindTagStart(words, 0, out currentTag);
+            if (startTagInd == -1)
+                return words; //todo into words
+            var endTagInd = FindTagEnd(words, startTagInd, currentTag);
+            IEnumerable<string> startTag;
+            if (endTagInd == -1)
+            {
+                startTag = SplitWordByTag(words.ElementAt(startTagInd), currentTag);
+                return words.Take(startTagInd-1).Concat(Do(startTag.Skip(startTagInd+1)));
+            }
+            startTag = SplitWordByTag(words.ElementAt(startTagInd), currentTag);
+            var endTag = SplitWordByTag(words.ElementAt(endTagInd), currentTag);
+            var wrappedText = WrapIntoTag(startTag
+                .Concat(Do(words.Skip(startTagInd).Take(endTagInd - startTagInd - 1)))
+                .Concat(endTag), currentTag);
+            return words.Take(startTagInd - 1).Concat(wrappedText).Concat(Do(words.Skip(endTagInd)));
         }
 
-        public int FindTagStart(string[] text, int startIndex, out string tag)
+        public IEnumerable<string> SplitWordByTag(string word, string tag)=>  
+            new[] { word.Substring(0, tag.Length), word.Substring(tag.Length) };
+
+        public int FindTagStart(IEnumerable<string> text, int startIndex, out string tag)
         {
             tag = string.Empty;
-            if (startIndex<text.Length && startIndex >= 0)
+            if (startIndex<text.Count() && startIndex >= 0)
                 for (var count = tags.Max(x => x.Length); count > 0; count--)
-                    for (var wordCount = startIndex; wordCount < text.Length; wordCount++)
+                    for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
                     {
-                        var prefix = GetPrefix(text[wordCount], count);
-                        if (text[wordCount].Length > count && tags.Contains(prefix))
+                        var prefix = GetPrefix(text.ElementAt(wordCount), count);
+                        if (text.ElementAt(wordCount).Length > count && tags.Contains(prefix))
                         {
                             tag = prefix;
                             return wordCount;
@@ -57,13 +75,13 @@ namespace Markdown
             return -1;
         }
 
-        public int FindTagEnd(string[] text, int startIndex, string tag)
+        public int FindTagEnd(IEnumerable<string> text, int startIndex, string tag)
         {
-            if (startIndex<text.Length && startIndex>=0)
-                for (var wordCount = startIndex; wordCount < text.Length; wordCount++)
+            if (startIndex<text.Count() && startIndex>=0)
+                for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
                 {
-                    var suffix = GetSuffix(text[wordCount], tag.Length);
-                    if (text[wordCount].Length > tag.Length && tags.Contains(suffix))
+                    var suffix = GetSuffix(text.ElementAt(wordCount), tag.Length);
+                    if (text.ElementAt(wordCount).Length > tag.Length && tags.Contains(suffix))
                         return wordCount;
                 }
             return -1;
