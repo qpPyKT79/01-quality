@@ -25,10 +25,10 @@ namespace Markdown
         {
             if (tagName.ContainsKey(tagType))
             {
-                
-                //text[0] = tagName[tagType] + text[0].Substring(tagType.Length);
-                //text[text.Length - 1] = text[text.Length - 1]
-                //    .Substring(text[text.Length - 1].Length - tagType.Length) + tagName[tagType].Item2;
+                return
+                    new[] {tagName[tagType].Item1}
+                    .Concat(text.Skip(1).Take((text.Count() - 2)))
+                    .Concat(new[] {tagName[tagType].Item2});
             }
             return text;
         }
