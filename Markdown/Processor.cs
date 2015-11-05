@@ -15,7 +15,6 @@ namespace Markdown
 
         private static Dictionary<string, Tuple<string, string>> tagName = new Dictionary<string, Tuple<string, string>>()
         {
-            {"\n\n", new Tuple<string, string>("<p>", "</p>")},
             {"`", new Tuple<string, string>("<code>", "</code>")},
             {"_", new Tuple<string, string>("<em>", "</em>")},
             {"__", new Tuple<string, string>("<strong>", "</strong>")}
@@ -32,8 +31,13 @@ namespace Markdown
             }
             return text;
         }
-
-        // <p> + text.replace("\n\n","</p><p>).replace("\n","<br>") + </p>
+        
+        /// <summary>
+        /// этот ад рекурсивно разбивает текст на блоки которые оберачиваются в теги
+        /// todo: надо как то упрощать этот ад, читать невозможно уже через полчаса
+        /// </summary>
+        /// <param name="words">слова текста</param>
+        /// <returns>текст обернутый в теги</returns>
         public static IEnumerable<string> Wrapper(IEnumerable<string> words)
         {
 
@@ -58,7 +62,7 @@ namespace Markdown
                 , currentTag);
             return words.Take(startTagInd).Concat(wrappedText).Concat(Wrapper(words.Skip(endTagInd+1)));
         }
-
+        // todo: зачем мне тут сам тег?
         public static IEnumerable<string> SplitStartWordByTag(string word, string tag) =>
             new[] {tag, word.Substring(tag.Length)};
 
