@@ -39,7 +39,7 @@ namespace Markdown
             if (startTagInd == -1)
                 return words; 
             var endTagInd = FindTagEnd(words, startTagInd, currentTag);
-            var startTag = GetSuffix(words.ElementAt(startTagInd), currentTag.Length);// SplitStartWordByTag(words.ElementAt(startTagInd), currentTag);
+            var startTag = GetSuffix(words.ElementAt(startTagInd), words.ElementAt(startTagInd).Length-currentTag.Length);
             if (endTagInd == -1)
                 return words.Take(startTagInd).Concat(Wrapper(words.Skip(startTagInd+1))); 
             if (startTagInd == endTagInd)
@@ -47,8 +47,8 @@ namespace Markdown
                 var splited = GetMiddle(words.ElementAt(startTagInd), currentTag.Length);
                 return words.Take(startTagInd).Concat(WrapIntoTag(new[] {splited},currentTag)).Concat(Wrapper(words.Skip(startTagInd+1)));
             }
-            var endTag = GetPrefix(words.ElementAt(endTagInd), words.ElementAt(endTagInd).Length - currentTag.Length); //SplitEndWordByTag(words.ElementAt(endTagInd), currentTag);
-            var wrappedText = WrapIntoTag(
+            var endTag = GetPrefix(words.ElementAt(endTagInd), words.ElementAt(endTagInd).Length - currentTag.Length);
+            var wrappedText = WrapIntoTag(//тут бага, не оборачивается то что внутри todo: для тега code не вызывать внутренний враппер, надо разделить этот ад на подметоды
                 new[] {startTag}
                 .Concat(words.Skip(startTagInd+1).Take(endTagInd-startTagInd-1))
                 .Concat(new [] {endTag})
@@ -59,17 +59,18 @@ namespace Markdown
         public static int FindTagStart(IEnumerable<string> text, int startIndex, out string tag)
         {
             tag = string.Empty;
-            if (text != null && startIndex < text.Count() && startIndex >= 0)
-                for (var count = TagName.Keys.Max(x => x.Length); count > 0; count--)
-                    for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
-                    {
-                        var prefix = GetPrefix(text.ElementAt(wordCount), count);
-                        if (text.ElementAt(wordCount).Length > count && TagName.Keys.Contains(prefix))
-                        {
-                            tag = prefix;
-                            return wordCount;
-                        }
-                    }
+            var minLength = TagName.Keys.Min(t => t.Length);
+            var maxLength = TagName.Keys.Max(t => t.Length);
+            if (text == null || startIndex >= text.Count() || startIndex < 0) return -1;
+            for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
+                for ( var prefixLength = maxLength; prefixLength >=minLength; prefixLength--)
+                {
+                    if (prefixLength >= text.ElementAt(wordCount).Length) continue;
+                    var prefix = GetPrefix(text.ElementAt(wordCount), prefixLength);
+                    if (!TagName.Keys.Contains(prefix)) continue;
+                    tag = prefix;
+                    return wordCount;
+                }
             return -1;
         }
 

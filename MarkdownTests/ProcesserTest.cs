@@ -36,6 +36,17 @@ namespace MarkdownTests
             Assert.AreEqual(exceptedTag, actualTag);
         }
         [Test]
+        public void FindTagStart_FindStartIndexOfTwoTag()
+        {
+            var text = "This _is test_ __string__".Split(' ');
+            var exceptedIndex = 1;
+            var exceptedTag = "_";
+            string actualTag;
+            var actual = Processor.FindTagStart(text, 0, out actualTag);
+            Assert.AreEqual(exceptedIndex, actual);
+            Assert.AreEqual(exceptedTag, actualTag);
+        }
+        [Test]
         public void FindTagStart_UnexistableTag()
         {
             var text = "This is test string".Split(' ');
@@ -157,6 +168,34 @@ namespace MarkdownTests
             var excepted = "<p> This is test string <br> </p><p> new paragraph <br> just new line <br> </p><p> new paragraph </p> <br>";
             var actual = Processor.WrapParagraphs(text);
             Assert.AreEqual(excepted, actual);
+        }
+
+        [Test]
+        public void WraperSimpleTest()
+        {
+
+            var text = "This is _test_ string".Split(' ');
+            var excepted = new[] {"This", "is", "<em>", "test", "</em>", "string" };
+            var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+        [Test]
+        public void Wraper_DoubleTags()
+        {
+
+            var text = "This is ___test___ string".Split(' ');
+            var excepted = new[] { "This", "is", "<strong>", "<em>", "test", "</em>", "</strong>", "string" };
+            var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+        [Test]
+        public void Wraper_TwoTags()
+        {
+
+            var text = "This _is test_ __string__".Split(' ');
+            var excepted = new[] { "This", "<em>", "is", "test", "</em>", "<strong>", "string", "</strong>" };
+            var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
         }
 
 
