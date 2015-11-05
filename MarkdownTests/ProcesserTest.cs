@@ -189,9 +189,17 @@ namespace MarkdownTests
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
-        public void Wraper_TwoTags()
+        public void Wraper_subTags()
         {
 
+            var text = "This _is __test__ string_".Split(' ');
+            var excepted = new[] { "This", "<em>", "is", "<strong>", "test", "</strong>", "string", "</em>" };
+            var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+        [Test]
+        public void Wraper_TwoTags()
+        {
             var text = "This _is test_ __string__".Split(' ');
             var excepted = new[] { "This", "<em>", "is", "test", "</em>", "<strong>", "string", "</strong>" };
             var actual = Processor.Wrapper(text);

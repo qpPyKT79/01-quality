@@ -30,10 +30,13 @@ namespace Markdown
         /// todo: надо как то упрощать этот ад, читать невозможно уже через полчаса
         /// </summary>
         /// <param name="words">слова текста</param>
+        /// bug: найден дикий баг, я ебал этот код, тупая задача, дайте мне на питоне все распарсить на изи
+        /// bug: ищем стартовый тег, парсим слово, вызываем враппер к остальному тексту
+        /// bug: только теперь ищем закрывающий тег
+        /// bug: аааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааа!!!
         /// <returns>текст обернутый в теги</returns>
         public static IEnumerable<string> Wrapper(IEnumerable<string> words)
         {
-
             string currentTag;
             var startTagInd = FindTagStart(words, 0, out currentTag);
             if (startTagInd == -1)
