@@ -8,6 +8,6 @@ namespace Markdown
 {
     public interface IReader
     {
-        string[] ReadLines(string sourceName);
+        IEnumerable<string> ReadLines(string sourceName);
     }
 }

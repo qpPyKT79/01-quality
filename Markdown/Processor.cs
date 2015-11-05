@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Text;
-using System.Threading.Tasks;
-using Markdown;
 
 namespace Markdown
 {
-    public class Processor
+    public static class Processor
     {
-        private static HashSet<string> tags = new HashSet<string>() {"`", "__", "_"};
-
-        private static Dictionary<string, Tuple<string, string>> tagName = new Dictionary<string, Tuple<string, string>>()
+        private static readonly Dictionary<string, Tuple<string, string>> TagName = new Dictionary<string, Tuple<string, string>>()
         {
             {"`", new Tuple<string, string>("<code>", "</code>")},
             {"_", new Tuple<string, string>("<em>", "</em>")},
@@ -22,12 +15,12 @@ namespace Markdown
 
         public static IEnumerable<string> WrapIntoTag(IEnumerable<string> text, string tagType)
         {
-            if (tagName.ContainsKey(tagType))
+            if (TagName.ContainsKey(tagType))
             {
                 return
-                    new[] {tagName[tagType].Item1}
+                    new[] {TagName[tagType].Item1}
                         .Concat(text)
-                        .Concat(new[] {tagName[tagType].Item2});
+                        .Concat(new[] {TagName[tagType].Item2});
             }
             return text;
         }
@@ -41,46 +34,37 @@ namespace Markdown
         public static IEnumerable<string> Wrapper(IEnumerable<string> words)
         {
 
-            var currentTag = string.Empty;
+            string currentTag;
             var startTagInd = FindTagStart(words, 0, out currentTag);
             if (startTagInd == -1)
                 return words; 
             var endTagInd = FindTagEnd(words, startTagInd, currentTag);
-            var startTag = SplitStartWordByTag(words.ElementAt(startTagInd), currentTag);
+            var startTag = GetSuffix(words.ElementAt(startTagInd), currentTag.Length);// SplitStartWordByTag(words.ElementAt(startTagInd), currentTag);
             if (endTagInd == -1)
-                return words.Take(startTagInd).Concat(Wrapper(startTag.Skip(startTagInd+1))); 
+                return words.Take(startTagInd).Concat(Wrapper(words.Skip(startTagInd+1))); 
             if (startTagInd == endTagInd)
             {
-                var splited = SplitAllWordByTag(words.ElementAt(startTagInd), currentTag);
-                return words.Take(startTagInd).Concat(WrapIntoTag(new[] {splited.ElementAt(1)},currentTag)).Concat(Wrapper(words.Skip(startTagInd+1)));
+                var splited = GetMiddle(words.ElementAt(startTagInd), currentTag.Length);
+                return words.Take(startTagInd).Concat(WrapIntoTag(new[] {splited},currentTag)).Concat(Wrapper(words.Skip(startTagInd+1)));
             }
-            var endTag = SplitEndWordByTag(words.ElementAt(endTagInd), currentTag);
+            var endTag = GetPrefix(words.ElementAt(endTagInd), words.ElementAt(endTagInd).Length - currentTag.Length); //SplitEndWordByTag(words.ElementAt(endTagInd), currentTag);
             var wrappedText = WrapIntoTag(
-                new[] {startTag.ElementAt(1)}
+                new[] {startTag}
                 .Concat(words.Skip(startTagInd+1).Take(endTagInd-startTagInd-1))
-                .Concat(new [] {endTag.ElementAt(0)})
+                .Concat(new [] {endTag})
                 , currentTag);
             return words.Take(startTagInd).Concat(wrappedText).Concat(Wrapper(words.Skip(endTagInd+1)));
         }
-        // todo: зачем мне тут сам тег?
-        public static IEnumerable<string> SplitStartWordByTag(string word, string tag) =>
-            new[] {tag, word.Substring(tag.Length)};
-
-        public static IEnumerable<string> SplitEndWordByTag(string word, string tag) =>
-            new[] {word.Substring(0, word.Length - tag.Length), tag};
-
-        public static IEnumerable<string> SplitAllWordByTag(string word, string tag) =>
-            new[] {tag, word.Substring(tag.Length, word.Length - 2*tag.Length), tag};
-
+        
         public static int FindTagStart(IEnumerable<string> text, int startIndex, out string tag)
         {
             tag = string.Empty;
-            if (startIndex < text.Count() && startIndex >= 0)
-                for (var count = tags.Max(x => x.Length); count > 0; count--)
+            if (text != null && startIndex < text.Count() && startIndex >= 0)
+                for (var count = TagName.Keys.Max(x => x.Length); count > 0; count--)
                     for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
                     {
                         var prefix = GetPrefix(text.ElementAt(wordCount), count);
-                        if (text.ElementAt(wordCount).Length > count && tags.Contains(prefix))
+                        if (text.ElementAt(wordCount).Length > count && TagName.Keys.Contains(prefix))
                         {
                             tag = prefix;
                             return wordCount;
@@ -89,13 +73,14 @@ namespace Markdown
             return -1;
         }
 
-        public static int FindTagEnd(IEnumerable<string> text, int startIndex, string tag) //тут проверить на экранирование
+        public static int FindTagEnd(IEnumerable<string> text, int startIndex, string tag)
         {
-            if (startIndex < text.Count() && startIndex >= 0)
+            if (text != null && startIndex < text.Count() && startIndex >= 0)
                 for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
                 {
-                    var suffix = GetSuffix(text.ElementAt(wordCount), tag.Length);
-                    if (text.ElementAt(wordCount).Length > tag.Length && tags.Contains(suffix))
+                    if (text.ElementAt(wordCount).Length > tag.Length &&
+                        TagName.Keys.Contains(GetSuffix(text.ElementAt(wordCount), tag.Length)) &&
+                        GetSuffix(text.ElementAt(wordCount), tag.Length + 1)[0] != '\\')
                         return wordCount;
                 }
             return -1;
@@ -106,32 +91,21 @@ namespace Markdown
 
         public static string GetSuffix(string word, int count) => word.Substring(word.Length - count);
 
+        public static string GetMiddle(string word, int count) => word.Substring(count, word.Length - 2 * count);
+
 
         public static string[] Parse(string[] lines)
         {
-            var words = ParseParagraphs(lines.ToArray()).Split(new[] { ' ' });
+            var words = WrapParagraphs(lines.ToArray()).Split(new[] { ' ' });
             Wrapper(words);
             return lines;
         }
 
-        public static string ParseParagraphs(string[] lines)
+        public static string WrapParagraphs(string[] lines)
         {
-            lines[0] = "<p> " + lines[0];//возможен баг
+            lines[0] = "<p> " + lines[0];
             lines[lines.Length - 1] += " </p>";
-            return string.Join(" ",lines.Select(x => String.IsNullOrWhiteSpace(x) ? x + " </p><p>" : x + " <br>"));
+            return string.Join(" ", lines.Select(x => string.IsNullOrWhiteSpace(x) ? x + "</p><p>" : x + " <br>"));
         }
-        
-
-
-
-
-
-
-
-
-
-
-
     }
-
 }

@@ -12,28 +12,28 @@ namespace MarkdownTests
         public void Reader_ReadAllLinesFromFile()
         {
             var sourceName = "..//..//Tests//TestText1.txt";
-            var excepted = "This is test\nsome string";
-            var actual = string.Empty;
+            var excepted = new [] {"This is test", "some string"};
+            IEnumerable<string> actual = null;
             try
             {
                 IReader reader = new MarkdownReader();
-                actual = reader.Read(sourceName);
+                actual = reader.ReadLines(sourceName);
             }
             catch (Exception error)
             {
                 Assert.Fail(error.Message);
             }
-            Assert.AreEqual(excepted,actual);
+            CollectionAssert.AreEqual(excepted,actual);
         }
         [Test]
         public void Reader_ReadFromUnexistableFile_ErrorThrown()
         {
             var sourceName = "..//..//Tests//ThisFileSHouldNotBeExisted.txt";
-            var actual = string.Empty;
+            IEnumerable<string> actual = null;
             try
             {
                 IReader reader = new MarkdownReader();
-                actual = reader.Read(sourceName);
+                actual = reader.ReadLines(sourceName);
             }
             catch (Exception error)
             {
@@ -45,18 +45,18 @@ namespace MarkdownTests
         public void Reader_DeleteSpaces()
         {
             var sourceName = "..//..//Tests//TestText2.txt";
-            var excepted = "This is test\n\nsome string";
-            var actual = string.Empty;
+            var excepted = new[] { "This is test", "          ", "some string" };
+            IEnumerable<string> actual = null;
             try
             {
                 IReader reader = new MarkdownReader();
-                actual = reader.Read(sourceName);
+                actual = reader.ReadLines(sourceName);
             }
             catch (Exception error)
             {
                 Assert.Fail(error.Message);
             }
-            Assert.AreEqual(excepted, actual);
+            CollectionAssert.AreEqual(excepted, actual);
         }
     }
 }

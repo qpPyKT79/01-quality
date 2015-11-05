@@ -46,7 +46,6 @@
   <ItemGroup>
     <Compile Include="MarkdownReader.cs" />
     <Compile Include="FileWriter.cs" />
-    <Compile Include="IProcesser.cs" />
     <Compile Include="IReader.cs" />
     <Compile Include="IWriter.cs" />
     <Compile Include="Processor.cs" />

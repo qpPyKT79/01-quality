@@ -8,7 +8,7 @@ using System.Web;
 
 namespace Markdown
 {
-    public class MarkdownReader 
+    public class MarkdownReader: IReader
     {
         public IEnumerable<string> ReadLines(string sourceName)
         {
