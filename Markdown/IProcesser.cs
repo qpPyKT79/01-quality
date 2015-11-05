@@ -9,10 +9,12 @@ namespace Markdown
 {
     public interface IProcesser
     {
-        string Do(string text);
-        string WrapIntoTag(string text, string tagName);
-        int FindTagStart(string[] text, int startIndex, out string tag);
-        int FindTagEnd(string[] text, int startIndex, string tag);
+        IEnumerable<string> WrapIntoTag(IEnumerable<string> text, string tagName);
+        IEnumerable<string> Do(IEnumerable<string> words);
+        IEnumerable<string> SplitStartWordByTag(string word, string tag);
+        IEnumerable<string> SplitEndWordByTag(string word, string tag);
+        int FindTagStart(IEnumerable<string> text, int startIndex, out string tag);
+        int FindTagEnd(IEnumerable<string> text, int startIndex, string tag);
         string GetPrefix(string word, int count);
         string GetSuffix(string word, int count);
     }

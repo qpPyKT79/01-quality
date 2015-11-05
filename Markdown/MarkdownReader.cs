@@ -4,16 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Markdown
 {
-    public class FileReader :IReader
+    public class MarkdownReader 
     {
-        public string Read(string sourceName)
+        public IEnumerable<string> ReadLines(string sourceName)
         {
             try
             {
-                return string.Join(string.Empty,File.ReadAllLines(sourceName).Select(line => line.TrimEnd(new [] {' '})+"\n")).TrimEnd(new[] {'\n'});
+                return File.ReadAllLines(sourceName).Select(HttpUtility.HtmlEncode);
             }
             catch (FileNotFoundException)
             {

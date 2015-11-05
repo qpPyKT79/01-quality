@@ -9,11 +9,11 @@ using Markdown;
 
 namespace Markdown
 {
-    public class Processor : IProcesser
+    public class Processor
     {
-        private HashSet<string> tags = new HashSet<string>() {"`", "__", "_"};
+        private static HashSet<string> tags = new HashSet<string>() {"`", "__", "_"};
 
-        private Dictionary<string, Tuple<string, string>> tagName = new Dictionary<string, Tuple<string, string>>()
+        private static Dictionary<string, Tuple<string, string>> tagName = new Dictionary<string, Tuple<string, string>>()
         {
             {"\n\n", new Tuple<string, string>("<p>", "</p>")},
             {"`", new Tuple<string, string>("<code>", "</code>")},
@@ -21,47 +21,57 @@ namespace Markdown
             {"__", new Tuple<string, string>("<strong>", "</strong>")}
         };
 
-        public IEnumerable<string> WrapIntoTag(IEnumerable<string> text, string tagType)
+        public static IEnumerable<string> WrapIntoTag(IEnumerable<string> text, string tagType)
         {
             if (tagName.ContainsKey(tagType))
             {
                 return
                     new[] {tagName[tagType].Item1}
-                    .Concat(text.Skip(1).Take((text.Count() - 2)))
-                    .Concat(new[] {tagName[tagType].Item2});
+                        .Concat(text)
+                        .Concat(new[] {tagName[tagType].Item2});
             }
             return text;
         }
 
-        public IEnumerable<string> Do(IEnumerable<string> words)
+        // <p> + text.replace("\n\n","</p><p>).replace("\n","<br>") + </p>
+        public static IEnumerable<string> Wrapper(IEnumerable<string> words)
         {
+
             var currentTag = string.Empty;
-            //var words = words.Split(new [] {'\n',' '});
             var startTagInd = FindTagStart(words, 0, out currentTag);
             if (startTagInd == -1)
-                return words; //todo into words
+                return words; 
             var endTagInd = FindTagEnd(words, startTagInd, currentTag);
-            IEnumerable<string> startTag;
+            var startTag = SplitStartWordByTag(words.ElementAt(startTagInd), currentTag);
             if (endTagInd == -1)
+                return words.Take(startTagInd).Concat(Wrapper(startTag.Skip(startTagInd+1))); 
+            if (startTagInd == endTagInd)
             {
-                startTag = SplitWordByTag(words.ElementAt(startTagInd), currentTag);
-                return words.Take(startTagInd-1).Concat(Do(startTag.Skip(startTagInd+1)));
+                var splited = SplitAllWordByTag(words.ElementAt(startTagInd), currentTag);
+                return words.Take(startTagInd).Concat(WrapIntoTag(new[] {splited.ElementAt(1)},currentTag)).Concat(Wrapper(words.Skip(startTagInd+1)));
             }
-            startTag = SplitWordByTag(words.ElementAt(startTagInd), currentTag);
-            var endTag = SplitWordByTag(words.ElementAt(endTagInd), currentTag);
-            var wrappedText = WrapIntoTag(startTag
-                .Concat(Do(words.Skip(startTagInd).Take(endTagInd - startTagInd - 1)))
-                .Concat(endTag), currentTag);
-            return words.Take(startTagInd - 1).Concat(wrappedText).Concat(Do(words.Skip(endTagInd)));
+            var endTag = SplitEndWordByTag(words.ElementAt(endTagInd), currentTag);
+            var wrappedText = WrapIntoTag(
+                new[] {startTag.ElementAt(1)}
+                .Concat(words.Skip(startTagInd+1).Take(endTagInd-startTagInd-1))
+                .Concat(new [] {endTag.ElementAt(0)})
+                , currentTag);
+            return words.Take(startTagInd).Concat(wrappedText).Concat(Wrapper(words.Skip(endTagInd+1)));
         }
 
-        public IEnumerable<string> SplitWordByTag(string word, string tag)=>  
-            new[] { word.Substring(0, tag.Length), word.Substring(tag.Length) };
+        public static IEnumerable<string> SplitStartWordByTag(string word, string tag) =>
+            new[] {tag, word.Substring(tag.Length)};
 
-        public int FindTagStart(IEnumerable<string> text, int startIndex, out string tag)
+        public static IEnumerable<string> SplitEndWordByTag(string word, string tag) =>
+            new[] {word.Substring(0, word.Length - tag.Length), tag};
+
+        public static IEnumerable<string> SplitAllWordByTag(string word, string tag) =>
+            new[] {tag, word.Substring(tag.Length, word.Length - 2*tag.Length), tag};
+
+        public static int FindTagStart(IEnumerable<string> text, int startIndex, out string tag)
         {
             tag = string.Empty;
-            if (startIndex<text.Count() && startIndex >= 0)
+            if (startIndex < text.Count() && startIndex >= 0)
                 for (var count = tags.Max(x => x.Length); count > 0; count--)
                     for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
                     {
@@ -75,9 +85,9 @@ namespace Markdown
             return -1;
         }
 
-        public int FindTagEnd(IEnumerable<string> text, int startIndex, string tag)
+        public static int FindTagEnd(IEnumerable<string> text, int startIndex, string tag) //тут проверить на экранирование
         {
-            if (startIndex<text.Count() && startIndex>=0)
+            if (startIndex < text.Count() && startIndex >= 0)
                 for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
                 {
                     var suffix = GetSuffix(text.ElementAt(wordCount), tag.Length);
@@ -88,8 +98,36 @@ namespace Markdown
         }
 
 
-        public string GetPrefix(string word, int count) => word.Substring(0, count);
+        public static string GetPrefix(string word, int count) => word.Substring(0, count);
 
-        public string GetSuffix(string word, int count) => word.Substring(word.Length - count);
+        public static string GetSuffix(string word, int count) => word.Substring(word.Length - count);
+
+
+        public static string[] Parse(string[] lines)
+        {
+            var words = ParseParagraphs(lines.ToArray()).Split(new[] { ' ' });
+            Wrapper(words);
+            return lines;
+        }
+
+        public static string ParseParagraphs(string[] lines)
+        {
+            lines[0] = "<p> " + lines[0];//возможен баг
+            lines[lines.Length - 1] += " </p>";
+            return string.Join(" ",lines.Select(x => String.IsNullOrWhiteSpace(x) ? x + " </p><p>" : x + " <br>"));
+        }
+        
+
+
+
+
+
+
+
+
+
+
+
     }
+
 }

@@ -16,7 +16,7 @@ namespace MarkdownTests
             var actual = string.Empty;
             try
             {
-                IReader reader = new FileReader();
+                IReader reader = new MarkdownReader();
                 actual = reader.Read(sourceName);
             }
             catch (Exception error)
@@ -32,7 +32,7 @@ namespace MarkdownTests
             var actual = string.Empty;
             try
             {
-                IReader reader = new FileReader();
+                IReader reader = new MarkdownReader();
                 actual = reader.Read(sourceName);
             }
             catch (Exception error)
@@ -49,7 +49,7 @@ namespace MarkdownTests
             var actual = string.Empty;
             try
             {
-                IReader reader = new FileReader();
+                IReader reader = new MarkdownReader();
                 actual = reader.Read(sourceName);
             }
             catch (Exception error)
