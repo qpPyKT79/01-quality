@@ -78,6 +78,15 @@ namespace MarkdownTests
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
+        public void FindTagEnd_Collisions()
+        {
+            var text = "_This __is test__ string_".Split(' ');
+            var exceptedIndex = 3;
+            var actualTag = "_";
+            var actual = Processor.FindTagEnd(text, 0, actualTag);
+            Assert.AreEqual(exceptedIndex, actual);
+        }
+        [Test]
         public void FindTagEnd_UnexistableTag()
         {
             var text = "This is test string".Split(' ');

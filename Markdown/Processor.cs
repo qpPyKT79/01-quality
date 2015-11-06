@@ -28,15 +28,19 @@ namespace Markdown
         /// <summary>
         /// этот ад рекурсивно разбивает текст на блоки которые оберачиваются в теги
         /// todo: надо как то упрощать этот ад, читать невозможно уже через полчаса
+        /// bug: не парсится слово от тега
         /// </summary>
         /// <param name="words">слова текста</param>
-        /// bug: найден дикий баг, я ебал этот код, тупая задача, дайте мне на питоне все распарсить на изи
-        /// bug: ищем стартовый тег, парсим слово, вызываем враппер к остальному тексту
-        /// bug: только теперь ищем закрывающий тег
-        /// bug: аааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааа!!!
         /// <returns>текст обернутый в теги</returns>
         public static IEnumerable<string> Wrapper(IEnumerable<string> words)
         {
+            /*
+            start = -1
+            return text
+            finish = -1
+            return wrapper text skip start
+
+            */
             string currentTag;
             var startTagInd = FindTagStart(words, 0, out currentTag);
             if (startTagInd == -1)
@@ -76,15 +80,16 @@ namespace Markdown
                 }
             return -1;
         }
-
+        // bug: при поиске закрывающего тега _ в "a __a a__ a_" найдет второе слово
         public static int FindTagEnd(IEnumerable<string> text, int startIndex, string tag)
         {
             if (text != null && startIndex < text.Count() && startIndex >= 0)
                 for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
                 {
+                    var suffix = GetSuffix(text.ElementAt(wordCount), tag.Length);
+                    var presuffix = GetSuffix(text.ElementAt(wordCount), tag.Length + 1);
                     if (text.ElementAt(wordCount).Length > tag.Length &&
-                        TagName.Keys.Contains(GetSuffix(text.ElementAt(wordCount), tag.Length)) &&
-                        GetSuffix(text.ElementAt(wordCount), tag.Length + 1)[0] != '\\')
+                        TagName.Keys.Contains(suffix) && presuffix[0] != '\\' && !TagName.Keys.Contains(presuffix))
                         return wordCount;
                 }
             return -1;
