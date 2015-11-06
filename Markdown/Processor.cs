@@ -39,7 +39,8 @@ namespace Markdown
             return text
             finish = -1
             return wrapper text skip start
-
+            start = fnish
+            return 
             */
             string currentTag;
             var startTagInd = FindTagStart(words, 0, out currentTag);
@@ -52,13 +53,14 @@ namespace Markdown
             if (startTagInd == endTagInd)
             {
                 var splited = GetMiddle(words.ElementAt(startTagInd), currentTag.Length);
-                return words.Take(startTagInd).Concat(WrapIntoTag(new[] {splited},currentTag)).Concat(Wrapper(words.Skip(startTagInd+1)));
+                return words.Take(startTagInd).Concat(WrapIntoTag(Wrapper(new[] {splited}),currentTag)).Concat(Wrapper(words.Skip(startTagInd+1)));
             }
             var endTag = GetPrefix(words.ElementAt(endTagInd), words.ElementAt(endTagInd).Length - currentTag.Length);
-            var wrappedText = WrapIntoTag(//тут бага, не оборачивается то что внутри todo: для тега code не вызывать внутренний враппер, надо разделить этот ад на подметоды
+            //тут бага, не оборачивается то что внутри todo: для тега code не вызывать внутренний враппер, надо разделить этот ад на подметоды
+            var wrappedText = WrapIntoTag(Wrapper(
                 new[] {startTag}
                 .Concat(words.Skip(startTagInd+1).Take(endTagInd-startTagInd-1))
-                .Concat(new [] {endTag})
+                .Concat(new [] {endTag}))
                 , currentTag);
             return words.Take(startTagInd).Concat(wrappedText).Concat(Wrapper(words.Skip(endTagInd+1)));
         }
@@ -80,7 +82,6 @@ namespace Markdown
                 }
             return -1;
         }
-        // bug: при поиске закрывающего тега _ в "a __a a__ a_" найдет второе слово
         public static int FindTagEnd(IEnumerable<string> text, int startIndex, string tag)
         {
             if (text != null && startIndex < text.Count() && startIndex >= 0)
