@@ -31,7 +31,7 @@ namespace MarkdownTests
             var exceptedIndex = 3;
             var exceptedTag = "`";
             string actualTag;
-            var actual = Processor.FindTagStart(text,0,out actualTag);
+            var actual = Processor.FindOpenTag(text,0,out actualTag);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -42,7 +42,7 @@ namespace MarkdownTests
             var exceptedIndex = 1;
             var exceptedTag = "_";
             string actualTag;
-            var actual = Processor.FindTagStart(text, 0, out actualTag);
+            var actual = Processor.FindOpenTag(text, 0, out actualTag);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -53,7 +53,7 @@ namespace MarkdownTests
             var exceptedIndex = -1;
             var exceptedTag = string.Empty;
             string actualTag;
-            var actual = Processor.FindTagStart(text, 0, out actualTag);
+            var actual = Processor.FindOpenTag(text, 0, out actualTag);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -64,7 +64,7 @@ namespace MarkdownTests
             var exceptedIndex = -1;
             var exceptedTag = string.Empty;
             string actualTag;
-            var actual = Processor.FindTagStart(text, 4, out actualTag);
+            var actual = Processor.FindOpenTag(text, 4, out actualTag);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -74,7 +74,7 @@ namespace MarkdownTests
             var text = "This is test _string_".Split(' ');
             var exceptedIndex = 3;
             var actualTag = "_";
-            var actual = Processor.FindTagEnd(text, 0, actualTag);
+            var actual = Processor.FindCloseTag(text, 0, actualTag);
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
@@ -83,7 +83,7 @@ namespace MarkdownTests
             var text = "_This __is test__ string_".Split(' ');
             var exceptedIndex = 3;
             var actualTag = "_";
-            var actual = Processor.FindTagEnd(text, 0, actualTag);
+            var actual = Processor.FindCloseTag(text, 0, actualTag);
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
@@ -92,7 +92,7 @@ namespace MarkdownTests
             var text = "This is test string".Split(' ');
             var exceptedIndex = -1;
             var actualTag = string.Empty;
-            var actual = Processor.FindTagEnd(text, 1, actualTag);
+            var actual = Processor.FindCloseTag(text, 1, actualTag);
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
@@ -101,7 +101,7 @@ namespace MarkdownTests
             var text = "This is test string".Split(' ');
             var exceptedIndex = -1;
             var actualTag = string.Empty;
-            var actual = Processor.FindTagEnd(text, 4, actualTag);
+            var actual = Processor.FindCloseTag(text, 4, actualTag);
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
@@ -212,6 +212,14 @@ namespace MarkdownTests
             var text = "This _is test_ __string__".Split(' ');
             var excepted = new[] { "This", "<em>", "is", "test", "</em>", "<strong>", "string", "</strong>" };
             var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+        [Test]
+        public void WrapIntoTags_CodeTag()
+        {
+            var text = "This _is test_ __string__".Split(' ');
+            var excepted = new[] {"<code>", "This", "_is", "test_", "__string__", "</code>" };
+            var actual = Processor.WrapIntoTag(text, "`");
             CollectionAssert.AreEqual(excepted, actual);
         }
 

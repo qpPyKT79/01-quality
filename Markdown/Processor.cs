@@ -13,90 +13,71 @@ namespace Markdown
             {"__", new Tuple<string, string>("<strong>", "</strong>")}
         };
 
-        public static IEnumerable<string> WrapIntoTag(IEnumerable<string> text, string tagType)
+        // todo: не лучшее решение вызывать враппер отсюда для внутрненних текстов
+        public static IEnumerable<string> WrapIntoTag(IEnumerable<string> words, string tagType)
         {
             if (TagName.ContainsKey(tagType))
             {
-                return
-                    new[] {TagName[tagType].Item1}
-                        .Concat(text)
-                        .Concat(new[] {TagName[tagType].Item2});
+                var wrappedText = new[] {TagName[tagType].Item1}.Concat(words).Concat(new[] {TagName[tagType].Item2});
+                return tagType == "`" ? wrappedText : Wrapper(wrappedText);
             }
-            return text;
+            return words;
         }
-        
-        /// <summary>
-        /// этот ад рекурсивно разбивает текст на блоки которые оберачиваются в теги
-        /// todo: надо как то упрощать этот ад, читать невозможно уже через полчаса
-        /// bug: не парсится слово от тега
-        /// </summary>
-        /// <param name="words">слова текста</param>
-        /// <returns>текст обернутый в теги</returns>
+
         public static IEnumerable<string> Wrapper(IEnumerable<string> words)
         {
-            /*
-            start = -1
-            return text
-            finish = -1
-            return wrapper text skip start
-            start = fnish
-            return 
-            */
             string currentTag;
-            var startTagInd = FindTagStart(words, 0, out currentTag);
-            if (startTagInd == -1)
-                return words; 
-            var endTagInd = FindTagEnd(words, startTagInd, currentTag);
-            var startTag = GetSuffix(words.ElementAt(startTagInd), words.ElementAt(startTagInd).Length-currentTag.Length);
-            if (endTagInd == -1)
-                return words.Take(startTagInd).Concat(Wrapper(words.Skip(startTagInd+1))); 
-            if (startTagInd == endTagInd)
-            {
-                var splited = GetMiddle(words.ElementAt(startTagInd), currentTag.Length);
-                return words.Take(startTagInd).Concat(WrapIntoTag(Wrapper(new[] {splited}),currentTag)).Concat(Wrapper(words.Skip(startTagInd+1)));
-            }
-            var endTag = GetPrefix(words.ElementAt(endTagInd), words.ElementAt(endTagInd).Length - currentTag.Length);
-            //тут бага, не оборачивается то что внутри todo: для тега code не вызывать внутренний враппер, надо разделить этот ад на подметоды
-            var wrappedText = WrapIntoTag(Wrapper(
-                new[] {startTag}
-                .Concat(words.Skip(startTagInd+1).Take(endTagInd-startTagInd-1))
-                .Concat(new [] {endTag}))
-                , currentTag);
-            return words.Take(startTagInd).Concat(wrappedText).Concat(Wrapper(words.Skip(endTagInd+1)));
+            var openTagInd = FindOpenTag(words, 0, out currentTag);
+            if (openTagInd == -1)
+                return words;
+
+            var closeTagInd = FindCloseTag(words, openTagInd, currentTag);
+            if (closeTagInd == -1)
+                return words.Take(openTagInd).Concat(Wrapper(words.Skip(openTagInd+1)));
+
+            if (openTagInd == closeTagInd)
+                return words.Take(openTagInd).Concat(WrapIntoTag(new[] { GetMiddle(words.ElementAt(openTagInd), currentTag.Length) },currentTag)).Concat(Wrapper(words.Skip(openTagInd+1)));
+            
+            return words.Take(openTagInd).Concat(WrapIntoTag(
+                new[] { GetSuffix(words.ElementAt(openTagInd), words.ElementAt(openTagInd).Length - currentTag.Length) }
+                .Concat(words.Skip(openTagInd + 1).Take(closeTagInd - openTagInd - 1))
+                .Concat(new[] { GetPrefix(words.ElementAt(closeTagInd), words.ElementAt(closeTagInd).Length - currentTag.Length) })
+                , currentTag)).Concat(Wrapper(words.Skip(closeTagInd+1)));
         }
         
-        public static int FindTagStart(IEnumerable<string> text, int startIndex, out string tag)
+        public static int FindOpenTag(IEnumerable<string> words, int startIndex, out string tag)
         {
             tag = string.Empty;
             var minLength = TagName.Keys.Min(t => t.Length);
             var maxLength = TagName.Keys.Max(t => t.Length);
-            if (text == null || startIndex >= text.Count() || startIndex < 0) return -1;
-            for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
+            if (words == null || startIndex >= words.Count() || startIndex < 0) return -1;
+            for (var wordCount = startIndex; wordCount < words.Count(); wordCount++)
                 for ( var prefixLength = maxLength; prefixLength >=minLength; prefixLength--)
                 {
-                    if (prefixLength >= text.ElementAt(wordCount).Length) continue;
-                    var prefix = GetPrefix(text.ElementAt(wordCount), prefixLength);
+                    if (prefixLength >= words.ElementAt(wordCount).Length) continue;
+                    var prefix = GetPrefix(words.ElementAt(wordCount), prefixLength);
                     if (!TagName.Keys.Contains(prefix)) continue;
                     tag = prefix;
                     return wordCount;
                 }
             return -1;
         }
-        public static int FindTagEnd(IEnumerable<string> text, int startIndex, string tag)
+        public static int FindCloseTag(IEnumerable<string> words, int startIndex, string tag)
         {
-            if (text != null && startIndex < text.Count() && startIndex >= 0)
-                for (var wordCount = startIndex; wordCount < text.Count(); wordCount++)
+            if (words != null && startIndex < words.Count() && startIndex >= 0)
+                for (var wordCount = startIndex; wordCount < words.Count(); wordCount++)
                 {
-                    var suffix = GetSuffix(text.ElementAt(wordCount), tag.Length);
-                    var presuffix = GetSuffix(text.ElementAt(wordCount), tag.Length + 1);
-                    if (text.ElementAt(wordCount).Length > tag.Length &&
+                    var suffix = GetSuffix(words.ElementAt(wordCount), tag.Length);
+                    var presuffix = GetSuffix(words.ElementAt(wordCount), tag.Length + 1);
+                    if (words.ElementAt(wordCount).Length > tag.Length &&
                         TagName.Keys.Contains(suffix) && presuffix[0] != '\\' && !TagName.Keys.Contains(presuffix))
                         return wordCount;
                 }
             return -1;
         }
 
-
+        // эти три метода чисто чтобы не было ада в аргументах сабстринга,
+        // имхо "GetPrefix" в данной задаче гораздо больше смысла имеет чем просто сабстринг с непонятными аргументами
         public static string GetPrefix(string word, int count) => word.Substring(0, count);
 
         public static string GetSuffix(string word, int count) => word.Substring(word.Length - count);
