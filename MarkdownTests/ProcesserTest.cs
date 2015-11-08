@@ -9,6 +9,14 @@ namespace MarkdownTests
     public class ProcesserTest
     {
         [Test]
+        public void WrapIntoTags_CodeTag()
+        {
+            var text = "This _is test_ __string__".Split(' ');
+            var excepted = new[] { "<code>", "This", "_is", "test_", "__string__", "</code>" };
+            var actual = Processor.WrapIntoTag(text, "`");
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+        [Test]
         public void WrapIntoTag_WrapIntoTags_Succesful()
         {
             var text = "This is test string".Split(' ');
@@ -214,15 +222,57 @@ namespace MarkdownTests
             var actual = Processor.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
+        
+        /*
+        + ___a a___ 
+        + _a __a a__ a_
+        + _a a_ __a a__
+        + _a a _a a_    => <em> a a _a a <\em>
+        + _a __a a_ a__ => <em> a _aa <\em> a__
+        + _a `b _a a_ c_ __d d__` => _a <code> b _a a_ c_ __d d__ <\code>
+        + \_a a_ => _a a_
+        + _a a\_ => _a a_
+        */
         [Test]
-        public void WrapIntoTags_CodeTag()
+        public void Wrapper_DoubleOpenTag()
         {
-            var text = "This _is test_ __string__".Split(' ');
-            var excepted = new[] {"<code>", "This", "_is", "test_", "__string__", "</code>" };
-            var actual = Processor.WrapIntoTag(text, "`");
+            var text = "_This _is test_ string".Split(' ');
+            var excepted = new[] { "<em>", "This", "_is", "test", "</em>", "string"};
+            var actual = Processor.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
-
+        [Test]
+        public void Wrapper_NoWrapping()
+        {
+            var text = "_This __is test_ string__".Split(' ');
+            var excepted = new[] { "_This", "__is", "test_", "string__" };
+            var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+        [Test]
+        public void Wrapper_CodeTag_NoWrapping()
+        {
+            var text = "_This `is _test_ __string__`".Split(' ');
+            var excepted = new[] { "_This","<code>", "is", "_test_", "__string__", "</code>" };
+            var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+        [Test]
+        public void Wrapper_EscaeStartTag_NoWrapping()
+        {
+            var text = "\\_This is test_ string`".Split(' ');
+            var excepted = new[] { "_This", "is", "test_", "string" };
+            var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+        [Test]
+        public void Wrapper_EscapeCloseTagTag_NoWrapping()
+        {
+            var text = "_This is test\\_ string".Split(' ');
+            var excepted = new[] { "_This","is", "test_", "string"};
+            var actual = Processor.Wrapper(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
 
 
 

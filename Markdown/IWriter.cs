@@ -8,6 +8,6 @@ namespace Markdown
 {
     public interface IWriter
     {
-        void Write(IEnumerable<string> text, string name);
+        void Write(string text, string name);
     }
 }

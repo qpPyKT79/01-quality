@@ -11,6 +11,10 @@ namespace Markdown
     {
         static void Main(string[] args)
         {
+            IReader reader = new MarkdownReader();
+            var text = reader.ReadLines(args[0]);
+            IWriter writer = new HttpFileWriter();
+            writer.Write(Processor.Parse(text.ToArray()), args[1]);
         }
     }
 }

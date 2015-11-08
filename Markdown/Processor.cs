@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System
+    ;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,7 +7,7 @@ namespace Markdown
 {
     public static class Processor
     {
-        private static readonly Dictionary<string, Tuple<string, string>> TagName = new Dictionary<string, Tuple<string, string>>()
+        private static readonly Dictionary<string, Tuple<string, string>> Tags = new Dictionary<string, Tuple<string, string>>()
         {
             {"`", new Tuple<string, string>("<code>", "</code>")},
             {"_", new Tuple<string, string>("<em>", "</em>")},
@@ -16,9 +17,9 @@ namespace Markdown
         // todo: не лучшее решение вызывать враппер отсюда для внутрненних текстов
         public static IEnumerable<string> WrapIntoTag(IEnumerable<string> words, string tagType)
         {
-            if (TagName.ContainsKey(tagType))
+            if (Tags.ContainsKey(tagType))
             {
-                var wrappedText = new[] {TagName[tagType].Item1}.Concat(words).Concat(new[] {TagName[tagType].Item2});
+                var wrappedText = new[] {Tags[tagType].Item1}.Concat(words).Concat(new[] {Tags[tagType].Item2});
                 return tagType == "`" ? wrappedText : Wrapper(wrappedText);
             }
             return words;
@@ -33,33 +34,34 @@ namespace Markdown
 
             var closeTagInd = FindCloseTag(words, openTagInd, currentTag);
             if (closeTagInd == -1)
-                return words.Take(openTagInd).Concat(Wrapper(words.Skip(openTagInd+1)));
+                return words.Take(openTagInd).Concat(Wrapper(words.Skip(openTagInd + 1)));
 
             if (openTagInd == closeTagInd)
-                return words.Take(openTagInd).Concat(WrapIntoTag(new[] { GetMiddle(words.ElementAt(openTagInd), currentTag.Length) },currentTag)).Concat(Wrapper(words.Skip(openTagInd+1)));
-            
+                return words.Take(openTagInd).Concat(WrapIntoTag(new[] { GetMiddle(words.ElementAt(openTagInd), currentTag.Length) }, currentTag)).Concat(Wrapper(words.Skip(openTagInd + 1)));
+
             return words.Take(openTagInd).Concat(WrapIntoTag(
                 new[] { GetSuffix(words.ElementAt(openTagInd), words.ElementAt(openTagInd).Length - currentTag.Length) }
                 .Concat(words.Skip(openTagInd + 1).Take(closeTagInd - openTagInd - 1))
                 .Concat(new[] { GetPrefix(words.ElementAt(closeTagInd), words.ElementAt(closeTagInd).Length - currentTag.Length) })
-                , currentTag)).Concat(Wrapper(words.Skip(closeTagInd+1)));
+                , currentTag)).Concat(Wrapper(words.Skip(closeTagInd + 1)));
+
         }
         
         public static int FindOpenTag(IEnumerable<string> words, int startIndex, out string tag)
         {
             tag = string.Empty;
-            var minLength = TagName.Keys.Min(t => t.Length);
-            var maxLength = TagName.Keys.Max(t => t.Length);
-            if (words == null || startIndex >= words.Count() || startIndex < 0) return -1;
-            for (var wordCount = startIndex; wordCount < words.Count(); wordCount++)
-                for ( var prefixLength = maxLength; prefixLength >=minLength; prefixLength--)
-                {
-                    if (prefixLength >= words.ElementAt(wordCount).Length) continue;
-                    var prefix = GetPrefix(words.ElementAt(wordCount), prefixLength);
-                    if (!TagName.Keys.Contains(prefix)) continue;
-                    tag = prefix;
-                    return wordCount;
-                }
+            var minTagLength = Tags.Keys.Min(t => t.Length);
+            var maxTagLength = Tags.Keys.Max(t => t.Length);
+            if (words != null && startIndex < words.Count() && startIndex >= 0)
+                for (var wordCount = startIndex; wordCount < words.Count(); wordCount++)
+                    for (var prefixLength = maxTagLength; prefixLength >= minTagLength; prefixLength--)
+                    {
+                        if (prefixLength >= words.ElementAt(wordCount).Length) continue;
+                        var prefix = GetPrefix(words.ElementAt(wordCount), prefixLength);
+                        if (!Tags.Keys.Contains(prefix)) continue;
+                        tag = prefix;
+                        return wordCount;
+                    }
             return -1;
         }
         public static int FindCloseTag(IEnumerable<string> words, int startIndex, string tag)
@@ -70,7 +72,7 @@ namespace Markdown
                     var suffix = GetSuffix(words.ElementAt(wordCount), tag.Length);
                     var presuffix = GetSuffix(words.ElementAt(wordCount), tag.Length + 1);
                     if (words.ElementAt(wordCount).Length > tag.Length &&
-                        TagName.Keys.Contains(suffix) && presuffix[0] != '\\' && !TagName.Keys.Contains(presuffix))
+                        Tags.Keys.Contains(suffix) && presuffix[0] != '\\' && !Tags.Keys.Contains(presuffix))
                         return wordCount;
                 }
             return -1;
@@ -84,13 +86,8 @@ namespace Markdown
 
         public static string GetMiddle(string word, int count) => word.Substring(count, word.Length - 2 * count);
 
-
-        public static string[] Parse(string[] lines)
-        {
-            var words = WrapParagraphs(lines.ToArray()).Split(new[] { ' ' });
-            Wrapper(words);
-            return lines;
-        }
+        public static string Parse(IEnumerable<string> lines) => string.Join(" ", Wrapper(WrapParagraphs(lines.ToArray()).Split(new[] { ' ' })));
+        
 
         public static string WrapParagraphs(string[] lines)
         {
