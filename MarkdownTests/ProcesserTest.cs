@@ -39,7 +39,7 @@ namespace MarkdownTests
             var exceptedIndex = 3;
             var exceptedTag = "`";
             string actualTag;
-            var actual = Processor.FindOpenTag(text,0,out actualTag);
+            var actual = Processor.FindOpenTag(text,0,out actualTag, Processor.AllTags.Keys);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -50,7 +50,7 @@ namespace MarkdownTests
             var exceptedIndex = 1;
             var exceptedTag = "_";
             string actualTag;
-            var actual = Processor.FindOpenTag(text, 0, out actualTag);
+            var actual = Processor.FindOpenTag(text, 0, out actualTag, Processor.AllTags.Keys);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -61,7 +61,7 @@ namespace MarkdownTests
             var exceptedIndex = -1;
             var exceptedTag = string.Empty;
             string actualTag;
-            var actual = Processor.FindOpenTag(text, 0, out actualTag);
+            var actual = Processor.FindOpenTag(text, 0, out actualTag, Processor.AllTags.Keys);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -72,7 +72,7 @@ namespace MarkdownTests
             var exceptedIndex = -1;
             var exceptedTag = string.Empty;
             string actualTag;
-            var actual = Processor.FindOpenTag(text, 4, out actualTag);
+            var actual = Processor.FindOpenTag(text, 4, out actualTag, Processor.AllTags.Keys);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -228,7 +228,7 @@ namespace MarkdownTests
         + _a __a a__ a_
         + _a a_ __a a__
         + _a a _a a_    => <em> a a _a a <\em>
-        + _a __a a_ a__ => <em> a _aa <\em> a__
+        + _a __a a_ a__ => <em> a __a a <\em> a__
         + _a `b _a a_ c_ __d d__` => _a <code> b _a a_ c_ __d d__ <\code>
         + \_a a_ => _a a_
         + _a a\_ => _a a_
@@ -238,14 +238,6 @@ namespace MarkdownTests
         {
             var text = "_This _is test_ string".Split(' ');
             var excepted = new[] { "<em>", "This", "_is", "test", "</em>", "string"};
-            var actual = Processor.Wrapper(text);
-            CollectionAssert.AreEqual(excepted, actual);
-        }
-        [Test]
-        public void Wrapper_NoWrapping()
-        {
-            var text = "_This __is test_ string__".Split(' ');
-            var excepted = new[] { "_This", "__is", "test_", "string__" };
             var actual = Processor.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
@@ -261,7 +253,7 @@ namespace MarkdownTests
         public void Wrapper_EscaeStartTag_NoWrapping()
         {
             var text = "\\_This is test_ string`".Split(' ');
-            var excepted = new[] { "_This", "is", "test_", "string" };
+            var excepted = new[] { "_This", "is", "test_", "string`" };
             var actual = Processor.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
