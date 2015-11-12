@@ -13,7 +13,7 @@ namespace Markdown
         {
             try
             {
-                // todo: добавить теги <http> <head> <body> и.т.д.
+                text = "<meta http-equiv = \"Content-Type\" content = \"text/html; charset=utf-8\">" + text;
                 File.WriteAllText(name, text);
             }
             catch (Exception error)
