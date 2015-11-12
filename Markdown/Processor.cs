@@ -60,7 +60,7 @@ namespace Markdown
             if (openTagPosition == closeTagPosition)
                 return GetHead(words, openTagPosition)
                     .Concat(WrapIntoTag(ToArray(GetMiddle(words.ElementAt(openTagPosition), currentTag.Length)), currentTag))
-                    .Concat(GetTail(words, openTagPosition + 1));
+                    .Concat(Wrapper(GetTail(words, openTagPosition + 1)));
             return GetHead(words, openTagPosition)
                 .Concat(WrapIntoTag(
                     GetBody(
@@ -83,25 +83,26 @@ namespace Markdown
             var maxTagLength = TagGroup.Max(t => t.Length);
             if (words != null && startIndex < words.Count() && startIndex >= 0)
                 for (var wordCount = startIndex; wordCount < words.Count(); wordCount++)
-                    for (var prefixLength = maxTagLength; prefixLength >= minTagLength; prefixLength--)
-                    {
-                        if (prefixLength >= words.ElementAt(wordCount).Length) continue;
-                        var prefix = GetPrefix(words.ElementAt(wordCount), prefixLength);
-                        if (!TagGroup.Contains(prefix)) continue;
-                        tag = prefix;
-                        return wordCount;
-                    }
+                    if (!TagGroup.Contains(words.ElementAt(wordCount)))
+                        for (var prefixLength = maxTagLength; prefixLength >= minTagLength; prefixLength--)
+                        {
+                            if (prefixLength >= words.ElementAt(wordCount).Length) continue;
+                            var prefix = GetPrefix(words.ElementAt(wordCount), prefixLength);
+                            if (!TagGroup.Contains(prefix)) continue;
+                            tag = prefix;
+                            return wordCount;
+                        }
             return -1;
         }
         public static int FindCloseTag(IEnumerable<string> words, int startIndex, string tag)
         {
             if (words != null && startIndex < words.Count() && startIndex >= 0)
                 for (var wordCount = startIndex; wordCount < words.Count(); wordCount++)
-                    if (words.ElementAt(wordCount).Length > tag.Length)
+                    if (words.ElementAt(wordCount).Length > tag.Length && words.ElementAt(wordCount) != tag)
                     {
                         var suffix = GetSuffix(words.ElementAt(wordCount), tag.Length);
                         var presuffix = GetSuffix(words.ElementAt(wordCount), tag.Length + 1);
-                        if (AllTags.Keys.Contains(suffix) && presuffix[0] != '\\' && !AllTags.Keys.Contains(presuffix))
+                        if (AllTags.Keys.Contains(suffix) && presuffix[0] != '\\' && !AllTags.Keys.Contains(presuffix) && suffix == tag)
                             return wordCount;
                     }
             return -1;

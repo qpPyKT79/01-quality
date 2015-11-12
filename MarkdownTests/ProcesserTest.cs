@@ -266,6 +266,17 @@ namespace MarkdownTests
             CollectionAssert.AreEqual(excepted, actual);
         }
 
+        [Test]
+        public void Markdown_HardTest()
+        {
+            IReader reader = new MarkdownReader();
+
+            var text = reader.ReadLines("..//..//Tests//TestText3.txt");
+            var excepted = new[] { "_This", "is", "test_", "string" };
+            var actual = Processor.Parse(text);
+            CollectionAssert.AreEqual(excepted, actual);
+        }
+
 
 
 
