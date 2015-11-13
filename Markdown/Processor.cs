@@ -24,6 +24,24 @@ namespace Markdown
             return UnWrappedInsideTags.Contains(tagType) ? wrappedText : Wrapper(wrappedText);
         }
 
+        public static IEnumerable<string> Concat(IList<string> words, int openTagPosition) =>
+            GetHead(words, openTagPosition + 1).Concat(Wrapper(GetTail(words, openTagPosition + 1)));
+
+        public static IEnumerable<string> Concat(IList<string> words, int openTagPosition, int closeTagPosition, string splitedStart, string splitedEnd, string currentTag) =>
+             GetHead(words, openTagPosition)
+                .Concat(WrapIntoTag(
+                    GetBody(
+                        splitedStart,
+                        GetBody(words, openTagPosition + 1, closeTagPosition - openTagPosition - 1),
+                        splitedEnd)
+                        , currentTag)
+                       )
+                .Concat(Wrapper(GetTail(words, closeTagPosition + 1)));
+        public static IEnumerable<string> Concat(IList<string> words, int openTagPosition, string currentTag) =>
+            GetHead(words, openTagPosition)
+                    .Concat(WrapIntoTag(ToArray(GetMiddle(words.ElementAt(openTagPosition), currentTag.Length)), currentTag))
+                    .Concat(Wrapper(GetTail(words, openTagPosition + 1)));
+
         public static IEnumerable<string> Wrapper(IEnumerable<string> words)
         {
             string currentTag;
@@ -37,7 +55,7 @@ namespace Markdown
 
             var closeTagPosition = FindCloseTag(wordsSequence, openTagPosition, currentTag);
             if (closeTagPosition == -1)
-                return GetHead(wordsSequence, openTagPosition+1).Concat(Wrapper(GetTail(wordsSequence, openTagPosition+1)));
+                return Concat(wordsSequence, openTagPosition);
 
             var splitedEnd = GetPrefix(wordsSequence.ElementAt(closeTagPosition),
                 wordsSequence.ElementAt(closeTagPosition).Length - currentTag.Length);
@@ -59,28 +77,14 @@ namespace Markdown
                         wordsSequence.ElementAt(openSpecialTag).Length - specialTag.Length);
                     splitedEnd = GetPrefix(wordsSequence.ElementAt(closeSpecialTag),
                         wordsSequence.ElementAt(closeSpecialTag).Length - specialTag.Length);
-
-                    return GetHead(wordsSequence, openSpecialTag)
-                        .Concat(WrapIntoTag(
-                            GetBody(splitedStart, GetBody(wordsSequence, openSpecialTag + 1, closeSpecialTag - openSpecialTag - 1), splitedEnd), specialTag))
-                            .Concat(Wrapper(GetTail(wordsSequence, closeSpecialTag + 1)));
+                    return Concat(wordsSequence, openSpecialTag, closeSpecialTag, splitedStart, splitedEnd, specialTag);
                 }   
             }
 
             if (openTagPosition == closeTagPosition)
-                return GetHead(wordsSequence, openTagPosition)
-                    .Concat(WrapIntoTag(ToArray(GetMiddle(wordsSequence.ElementAt(openTagPosition), currentTag.Length)), currentTag))
-                    .Concat(Wrapper(GetTail(wordsSequence, openTagPosition + 1)));
+                return Concat(wordsSequence, openTagPosition, currentTag);
 
-            return GetHead(wordsSequence, openTagPosition)
-                .Concat(WrapIntoTag(
-                    GetBody(
-                        splitedStart,
-                        GetBody(wordsSequence, openTagPosition + 1, closeTagPosition - openTagPosition - 1),
-                        splitedEnd)
-                        , currentTag)
-                       )
-                .Concat(Wrapper(GetTail(wordsSequence, closeTagPosition + 1)));
+            return Concat(wordsSequence, openTagPosition, closeTagPosition, splitedStart, splitedEnd, currentTag);
         }
 
         public static IEnumerable<string> GetHead(IEnumerable<string> words, int count) => words.Take(count);
