@@ -272,9 +272,14 @@ namespace MarkdownTests
             IReader reader = new MarkdownReader();
 
             var text = reader.ReadLines("..//..//Tests//TestText3.txt");
-            var excepted = new[] { "_This", "is", "test_", "string" };
+            var header = "<p> ";
+            var body = "This is test <em> string <br> </p><p> this must be wrapped anyway </em> <br> This <strong> is test </strong> <em> this is test too </em> <br> next symbol __ must not be wrapped <br> and how about <code> that? <br> </p><p> (define (factorial n) <br>    (if (= n 0) <br>        1 <br>        (* (factorial (- n 1)) n))) </code> <br> </p><p> it was factorial <strong> (scheme) </strong> and nothing must not be wrapped there <br> </p><p> this is factorial on c# <br> <code> public int fact(int num) { <br>      return (num == 0) ? 1 : num * fact(num - 1); <br> } </code> <br> lets try to wrap into tag some words here <br> <code> public int _fact_ (int __num__ ) { <br>      return ( __num__ == 0) ? 1 : __num__ * _fact_ ( __num__ - 1); <br> } </code> <br> nothing has happened! <br> </p><p> <code> _a \\`a_ a\\` a_ </code> =&gt; <em> a `a_` a </em> <br> </p><p> lets repeat this 150 times <br> (~ 5000 lines) <br> </p><p> ========================= <br> ";
+            var excepted = header;
+            for (var i = 0; i < 150; i++)
+                excepted += body;
+            excepted = excepted.Substring(0, excepted.Length - 5) + "</p> <br>";
             var actual = Processor.Parse(text);
-            CollectionAssert.AreEqual(excepted, actual);
+            Assert.AreEqual(excepted, actual);
         }
 
 
