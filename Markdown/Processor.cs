@@ -47,7 +47,7 @@ namespace Markdown
                     GetHead(wordsSequence, openTagPosition)
                         .Concat(ToArray(splitedStart)
                         .Concat(GetTail(wordsSequence, openTagPosition + 1))), openTagPosition, out specialTag, UnWrappedInsideTags);
-            if (openSpecialTag != -1)
+            if (openSpecialTag != -1 && !UnWrappedInsideTags.Contains(currentTag))
             {
                 var closeSpecialTag = FindCloseTag(
                     GetHead(wordsSequence, closeTagPosition)
