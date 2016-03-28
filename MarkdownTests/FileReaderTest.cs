@@ -16,7 +16,7 @@ namespace MarkdownTests
             IEnumerable<string> actual = null;
             try
             {
-                IReader reader = new MarkdownReader();
+                IReader reader = new MdReader();
                 actual = reader.ReadLines(sourceName);
             }
             catch (Exception error)
@@ -32,7 +32,7 @@ namespace MarkdownTests
             IEnumerable<string> actual = null;
             try
             {
-                IReader reader = new MarkdownReader();
+                IReader reader = new MdReader();
                 actual = reader.ReadLines(sourceName);
             }
             catch (Exception error)
@@ -49,7 +49,7 @@ namespace MarkdownTests
             IEnumerable<string> actual = null;
             try
             {
-                IReader reader = new MarkdownReader();
+                IReader reader = new MdReader();
                 actual = reader.ReadLines(sourceName);
             }
             catch (Exception error)

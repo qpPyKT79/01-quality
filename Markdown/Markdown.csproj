@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FluentCommandLineParser, Version=1.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentCommandLineParser.1.4.3\lib\net35\FluentCommandLineParser.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
@@ -44,7 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MarkdownReader.cs" />
+    <Compile Include="ArgParser.cs" />
+    <Compile Include="MdReader.cs" />
     <Compile Include="HttpFileWriter.cs" />
     <Compile Include="IReader.cs" />
     <Compile Include="IWriter.cs" />
@@ -55,6 +60,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="hardTest.md" />
+    <None Include="packages.config" />
     <None Include="sample.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace Markdown
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {
-            IReader reader = new MarkdownReader();
-            var text = reader.ReadLines(args[0]);
+            ArgParser parsedArguments;
+            if (!ArgParser.TryGetArguments(args, out parsedArguments))
+                return;
+        
+            IReader reader = new MdReader();
+            var text = reader.ReadLines(parsedArguments.InputFileName);
             IWriter writer = new HttpFileWriter();
-            writer.Write(Processor.Parse(text.ToArray()), args[1]);
+            writer.Write(Processor.Parse(text.ToArray()), parsedArguments.OutputFileName);
         }
     }
 }

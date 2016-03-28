@@ -37,6 +37,7 @@ namespace Markdown
                         , currentTag)
                        )
                 .Concat(Wrapper(GetTail(words, closeTagPosition + 1)));
+
         public static IEnumerable<string> Concat(IList<string> words, int openTagPosition, string currentTag) =>
             GetHead(words, openTagPosition)
                     .Concat(WrapIntoTag(ToArray(GetMiddle(words.ElementAt(openTagPosition), currentTag.Length)), currentTag))

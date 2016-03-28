@@ -269,7 +269,7 @@ namespace MarkdownTests
         [Test]
         public void Markdown_HardTest()
         {
-            IReader reader = new MarkdownReader();
+            IReader reader = new MdReader();
 
             var text = reader.ReadLines("..//..//Tests//TestText3.txt");
             var header = "<p> ";
