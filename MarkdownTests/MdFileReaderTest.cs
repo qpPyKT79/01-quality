@@ -6,34 +6,31 @@ using NUnit.Framework;
 namespace MarkdownTests
 {
     [TestFixture]
-    public class FileReaderTest
+    public class MdFileReaderTest
     {
+        IReader sut;
+        [TestFixtureSetUp]
+        public void TestSetup()
+        {
+            sut = new MdReader();
+        }
+
         [Test]
-        public void Reader_ReadAllLinesFromFile()
+        public void Reader_ReadAllLinesFromFile_Readed()
         {
             var sourceName = "..//..//Tests//TestText1.txt";
             var excepted = new [] {"This is test", "some string"};
-            IEnumerable<string> actual = null;
-            try
-            {
-                IReader reader = new MdReader();
-                actual = reader.ReadLines(sourceName);
-            }
-            catch (Exception error)
-            {
-                Assert.Fail(error.Message);
-            }
+            var actual = sut.ReadLines(sourceName);
             CollectionAssert.AreEqual(excepted,actual);
         }
+
         [Test]
         public void Reader_ReadFromUnexistableFile_ErrorThrown()
         {
             var sourceName = "..//..//Tests//ThisFileSHouldNotBeExisted.txt";
-            IEnumerable<string> actual = null;
             try
             {
-                IReader reader = new MdReader();
-                actual = reader.ReadLines(sourceName);
+                sut.ReadLines(sourceName);
             }
             catch (Exception error)
             {
@@ -41,21 +38,13 @@ namespace MarkdownTests
             }
             Assert.Fail("File must not be founded");
         }
+
         [Test]
         public void Reader_DeleteSpaces()
         {
             var sourceName = "..//..//Tests//TestText2.txt";
             var excepted = new[] { "This is test", "          ", "some string" };
-            IEnumerable<string> actual = null;
-            try
-            {
-                IReader reader = new MdReader();
-                actual = reader.ReadLines(sourceName);
-            }
-            catch (Exception error)
-            {
-                Assert.Fail(error.Message);
-            }
+            var actual = sut.ReadLines(sourceName);
             CollectionAssert.AreEqual(excepted, actual);
         }
     }

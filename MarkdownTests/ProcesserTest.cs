@@ -9,7 +9,7 @@ namespace MarkdownTests
     public class ProcesserTest
     {
         [Test]
-        public void WrapIntoTags_CodeTag()
+        public void WrapIntoTags_CodeTag_TextWrapped()
         {
             var text = "This _is test_ __string__".Split(' ');
             var excepted = new[] { "<code>", "This", "_is", "test_", "__string__", "</code>" };

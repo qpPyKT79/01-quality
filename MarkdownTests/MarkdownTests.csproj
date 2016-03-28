@@ -57,7 +57,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="FileReaderTest.cs" />
+    <Compile Include="MdFileReaderTest.cs" />
     <Compile Include="FileWriterTest.cs" />
     <Compile Include="ProcesserTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
