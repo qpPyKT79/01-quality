@@ -1,19 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using Markdown;
+using Markdown.Processors;
 using NUnit.Framework;
 
 namespace MarkdownTests
 {
     [TestFixture]
-    public class ProcesserTest
+    public class RecursiveProcesserTest
     {
+        IProcessor sut;
+        private RecursiveProcessor sut2;
+        [TestFixtureSetUp]
+        public void TestSetup()
+        {
+            sut = new RecursiveProcessor();
+            sut2 = new RecursiveProcessor();
+        }
+
         [Test]
         public void WrapIntoTags_CodeTag_TextWrapped()
         {
             var text = "This _is test_ __string__".Split(' ');
             var excepted = new[] { "<code>", "This", "_is", "test_", "__string__", "</code>" };
-            var actual = Processor.WrapIntoTag(text, "`");
+            var actual = sut2.WrapIntoTag(text, "`");
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -21,7 +31,7 @@ namespace MarkdownTests
         {
             var text = "This is test string".Split(' ');
             var excepted = new [] {"<code>", "This", "is",  "test", "string", "</code>"};
-            var actual = Processor.WrapIntoTag(text, "`");
+            var actual = sut2.WrapIntoTag(text, "`");
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -29,7 +39,7 @@ namespace MarkdownTests
         {
             var text = "This is test string".Split(' ');
             var excepted = new[] { "This", "is", "test", "string" };
-            var actual = Processor.WrapIntoTag(text, "This tag does not exist");
+            var actual = sut2.WrapIntoTag(text, "This tag does not exist");
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -39,7 +49,7 @@ namespace MarkdownTests
             var exceptedIndex = 3;
             var exceptedTag = "`";
             string actualTag;
-            var actual = Processor.FindOpenTag(text,0,out actualTag, Processor.AllTags.Keys);
+            var actual = sut2.FindOpenTag(text,0,out actualTag, RecursiveProcessor.AllTags.Keys);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -50,7 +60,7 @@ namespace MarkdownTests
             var exceptedIndex = 1;
             var exceptedTag = "_";
             string actualTag;
-            var actual = Processor.FindOpenTag(text, 0, out actualTag, Processor.AllTags.Keys);
+            var actual = sut2.FindOpenTag(text, 0, out actualTag, RecursiveProcessor.AllTags.Keys);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -61,7 +71,7 @@ namespace MarkdownTests
             var exceptedIndex = -1;
             var exceptedTag = string.Empty;
             string actualTag;
-            var actual = Processor.FindOpenTag(text, 0, out actualTag, Processor.AllTags.Keys);
+            var actual = sut2.FindOpenTag(text, 0, out actualTag, RecursiveProcessor.AllTags.Keys);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -72,7 +82,7 @@ namespace MarkdownTests
             var exceptedIndex = -1;
             var exceptedTag = string.Empty;
             string actualTag;
-            var actual = Processor.FindOpenTag(text, 4, out actualTag, Processor.AllTags.Keys);
+            var actual = sut2.FindOpenTag(text, 4, out actualTag, RecursiveProcessor.AllTags.Keys);
             Assert.AreEqual(exceptedIndex, actual);
             Assert.AreEqual(exceptedTag, actualTag);
         }
@@ -82,7 +92,7 @@ namespace MarkdownTests
             var text = "This is test _string_".Split(' ');
             var exceptedIndex = 3;
             var actualTag = "_";
-            var actual = Processor.FindCloseTag(text, 0, actualTag);
+            var actual = sut2.FindCloseTag(text, 0, actualTag);
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
@@ -91,7 +101,7 @@ namespace MarkdownTests
             var text = "_This __is test__ string_".Split(' ');
             var exceptedIndex = 3;
             var actualTag = "_";
-            var actual = Processor.FindCloseTag(text, 0, actualTag);
+            var actual = sut2.FindCloseTag(text, 0, actualTag);
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
@@ -100,7 +110,7 @@ namespace MarkdownTests
             var text = "This is test string".Split(' ');
             var exceptedIndex = -1;
             var actualTag = string.Empty;
-            var actual = Processor.FindCloseTag(text, 1, actualTag);
+            var actual = sut2.FindCloseTag(text, 1, actualTag);
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
@@ -109,14 +119,14 @@ namespace MarkdownTests
             var text = "This is test string".Split(' ');
             var exceptedIndex = -1;
             var actualTag = string.Empty;
-            var actual = Processor.FindCloseTag(text, 4, actualTag);
+            var actual = sut2.FindCloseTag(text, 4, actualTag);
             Assert.AreEqual(exceptedIndex, actual);
         }
         [Test]
         public void GetPrefixTest()
         {
             var text = "string";
-            var actual = Processor.GetPrefix(text, 3);
+            var actual = sut2.GetPrefix(text, 3);
             var excepted = "str";
             Assert.AreEqual(excepted, actual);
         }
@@ -126,7 +136,7 @@ namespace MarkdownTests
             var text = "string";
             try
             {
-                Processor.GetPrefix(text, 7);
+                sut2.GetPrefix(text, 7);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -138,7 +148,7 @@ namespace MarkdownTests
         public void GetSuffixTest()
         {
             var text = "string";
-            var actual = Processor.GetSuffix(text, 3);
+            var actual = sut2.GetSuffix(text, 3);
             var excepted = "ing";
             Assert.AreEqual(excepted, actual);
         }
@@ -148,7 +158,7 @@ namespace MarkdownTests
             var text = "string";
             try
             {
-                Processor.GetPrefix(text, 8);
+                sut2.GetPrefix(text, 8);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -160,7 +170,7 @@ namespace MarkdownTests
         public void GetMiddleTest()
         {
             var text = "string";
-            var actual = Processor.GetMiddle(text, 2);
+            var actual = sut2.GetMiddle(text, 2);
             var excepted = "ri";
             Assert.AreEqual(excepted, actual);
         }
@@ -170,7 +180,7 @@ namespace MarkdownTests
             var text = "string";
             try
             {
-                Processor.GetPrefix(text, 8);
+                sut2.GetPrefix(text, 8);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -183,7 +193,7 @@ namespace MarkdownTests
         {
             var text = new [] {"This is test string", "", "new paragraph", "just new line", "", "new paragraph"};
             var excepted = "<p> This is test string <br> </p><p> new paragraph <br> just new line <br> </p><p> new paragraph </p> <br>";
-            var actual = Processor.WrapParagraphs(text);
+            var actual = sut2.WrapParagraphs(text);
             Assert.AreEqual(excepted, actual);
         }
 
@@ -193,7 +203,7 @@ namespace MarkdownTests
 
             var text = "This is _test_ string".Split(' ');
             var excepted = new[] {"This", "is", "<em>", "test", "</em>", "string" };
-            var actual = Processor.Wrapper(text);
+            var actual = sut2.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -202,7 +212,7 @@ namespace MarkdownTests
 
             var text = "This is ___test___ string".Split(' ');
             var excepted = new[] { "This", "is", "<strong>", "<em>", "test", "</em>", "</strong>", "string" };
-            var actual = Processor.Wrapper(text);
+            var actual = sut2.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -211,7 +221,7 @@ namespace MarkdownTests
 
             var text = "This _is __test__ string_".Split(' ');
             var excepted = new[] { "This", "<em>", "is", "<strong>", "test", "</strong>", "string", "</em>" };
-            var actual = Processor.Wrapper(text);
+            var actual = sut2.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -219,7 +229,7 @@ namespace MarkdownTests
         {
             var text = "This _is test_ __string__".Split(' ');
             var excepted = new[] { "This", "<em>", "is", "test", "</em>", "<strong>", "string", "</strong>" };
-            var actual = Processor.Wrapper(text);
+            var actual = sut2.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
         
@@ -238,7 +248,7 @@ namespace MarkdownTests
         {
             var text = "_This _is test_ string".Split(' ');
             var excepted = new[] { "<em>", "This", "_is", "test", "</em>", "string"};
-            var actual = Processor.Wrapper(text);
+            var actual = sut2.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -246,7 +256,7 @@ namespace MarkdownTests
         {
             var text = "_This `is _test_ __string__`".Split(' ');
             var excepted = new[] { "_This","<code>", "is", "_test_", "__string__", "</code>" };
-            var actual = Processor.Wrapper(text);
+            var actual = sut2.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -254,7 +264,7 @@ namespace MarkdownTests
         {
             var text = "\\_This is test_ string`".Split(' ');
             var excepted = new[] { "_This", "is", "test_", "string`" };
-            var actual = Processor.Wrapper(text);
+            var actual = sut2.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
         [Test]
@@ -262,7 +272,7 @@ namespace MarkdownTests
         {
             var text = "_This is test\\_ string".Split(' ');
             var excepted = new[] { "_This","is", "test_", "string"};
-            var actual = Processor.Wrapper(text);
+            var actual = sut2.Wrapper(text);
             CollectionAssert.AreEqual(excepted, actual);
         }
 
@@ -278,12 +288,8 @@ namespace MarkdownTests
             for (var i = 0; i < 150; i++)
                 excepted += body;
             excepted = excepted.Substring(0, excepted.Length - 5) + "</p> <br>";
-            var actual = Processor.Parse(text);
+            var actual = sut.Parse(text);
             Assert.AreEqual(excepted, actual);
         }
-
-
-
-
     }
 }

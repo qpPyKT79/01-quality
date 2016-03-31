@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Markdown.Processors;
+
 namespace Markdown
 {
-    public static class Processor
+    public class RecursiveProcessor : IProcessor
     {
         public static readonly Dictionary<string, Tuple<string, string>> AllTags = new Dictionary<string, Tuple<string, string>>()
         {
@@ -17,17 +19,17 @@ namespace Markdown
             {"`"}
         };
 
-        public static IEnumerable<string> WrapIntoTag(IEnumerable<string> words, string tagType)
+        public IEnumerable<string> WrapIntoTag(IEnumerable<string> words, string tagType)
         {
             if (!AllTags.ContainsKey(tagType)) return words;
             var wrappedText = new[] {AllTags[tagType].Item1}.Concat(words).Concat(new[] {AllTags[tagType].Item2});
             return UnWrappedInsideTags.Contains(tagType) ? wrappedText : Wrapper(wrappedText);
         }
 
-        public static IEnumerable<string> Concat(IList<string> words, int openTagPosition) =>
+        public IEnumerable<string> Concat(IList<string> words, int openTagPosition) =>
             GetHead(words, openTagPosition + 1).Concat(Wrapper(GetTail(words, openTagPosition + 1)));
 
-        public static IEnumerable<string> Concat(IList<string> words, int openTagPosition, int closeTagPosition, string splitedStart, string splitedEnd, string currentTag) =>
+        public IEnumerable<string> Concat(IList<string> words, int openTagPosition, int closeTagPosition, string splitedStart, string splitedEnd, string currentTag) =>
              GetHead(words, openTagPosition)
                 .Concat(WrapIntoTag(
                     GetBody(
@@ -38,12 +40,12 @@ namespace Markdown
                        )
                 .Concat(Wrapper(GetTail(words, closeTagPosition + 1)));
 
-        public static IEnumerable<string> Concat(IList<string> words, int openTagPosition, string currentTag) =>
+        public IEnumerable<string> Concat(IList<string> words, int openTagPosition, string currentTag) =>
             GetHead(words, openTagPosition)
                     .Concat(WrapIntoTag(ToArray(GetMiddle(words.ElementAt(openTagPosition), currentTag.Length)), currentTag))
                     .Concat(Wrapper(GetTail(words, openTagPosition + 1)));
 
-        public static IEnumerable<string> Wrapper(IEnumerable<string> words)
+        public IEnumerable<string> Wrapper(IEnumerable<string> words)
         {
             string currentTag;
             var wordsSequence = words as IList<string> ?? words.ToList();
@@ -88,17 +90,17 @@ namespace Markdown
             return Concat(wordsSequence, openTagPosition, closeTagPosition, splitedStart, splitedEnd, currentTag);
         }
 
-        public static IEnumerable<string> GetHead(IEnumerable<string> words, int count) => words.Take(count);
+        public IEnumerable<string> GetHead(IEnumerable<string> words, int count) => words.Take(count);
 
-        public static IEnumerable<string> GetTail(IEnumerable<string> words, int startInd) => words.Skip(startInd);
+        public IEnumerable<string> GetTail(IEnumerable<string> words, int startInd) => words.Skip(startInd);
 
-        public static IEnumerable<string> GetBody(IEnumerable<string> words, int startInd, int count) => words.Skip(startInd).Take(count);
+        public IEnumerable<string> GetBody(IEnumerable<string> words, int startInd, int count) => words.Skip(startInd).Take(count);
 
-        public static IEnumerable<string> GetBody(string start, IEnumerable<string> words, string finish) => ToArray(start).Concat(words).Concat(ToArray(finish));
+        public IEnumerable<string> GetBody(string start, IEnumerable<string> words, string finish) => ToArray(start).Concat(words).Concat(ToArray(finish));
 
-        public static IEnumerable<string> ToArray(string word) => new [] {word};
+        public IEnumerable<string> ToArray(string word) => new [] {word};
 
-        public static int FindOpenTag(IEnumerable<string> words, int startIndex, out string tag, IEnumerable<string> TagGroup)
+        public int FindOpenTag(IEnumerable<string> words, int startIndex, out string tag, IEnumerable<string> TagGroup)
         {
             tag = string.Empty;
             var minTagLength = TagGroup.Min(t => t.Length);
@@ -118,7 +120,7 @@ namespace Markdown
             return -1;
         }
 
-        public static int FindCloseTag(IEnumerable<string> words, int startIndex, string tag)
+        public int FindCloseTag(IEnumerable<string> words, int startIndex, string tag)
         {
             var wordsSequence = words as IList<string> ?? words.ToList();
             if (words != null && startIndex < wordsSequence.Count() && startIndex >= 0)
@@ -133,21 +135,21 @@ namespace Markdown
             return -1;
         }
 
-        public static string GetPrefix(string word, int count) => word.Substring(0, count);
+        public string GetPrefix(string word, int count) => word.Substring(0, count);
 
-        public static string GetSuffix(string word, int count) => word.Substring(word.Length - count);
+        public string GetSuffix(string word, int count) => word.Substring(word.Length - count);
 
-        public static string GetMiddle(string word, int count) => word.Substring(count, word.Length - 2 * count);
+        public string GetMiddle(string word, int count) => word.Substring(count, word.Length - 2 * count);
 
-        public static string Parse(IEnumerable<string> lines) => string.Join(" ", Wrapper(WrapParagraphs(lines.ToArray()).Split(new[] { ' ' })));
+        public string Parse(IEnumerable<string> lines) => string.Join(" ", Wrapper(WrapParagraphs(lines.ToArray()).Split(new[] { ' ' })));
 
-        public static string WrapParagraphs(string[] lines)
+        public string WrapParagraphs(string[] lines)
         {
             lines[0] = "<p> " + lines[0];
             lines[lines.Length - 1] += " </p>";
             return string.Join(" ", lines.Select(x => string.IsNullOrWhiteSpace(x) ? x + "</p><p>" : x + " <br>"));
         }
 
-        public static IEnumerable<string> RemoveEscapes(IEnumerable<string> words)=> words.Select(word => word.Replace("\\", ""));
+        public IEnumerable<string> RemoveEscapes(IEnumerable<string> words)=> words.Select(word => word.Replace("\\", ""));
     }
 }

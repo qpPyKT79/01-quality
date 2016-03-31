@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Markdown.Processors;
 
 namespace Markdown
 {
@@ -13,7 +14,8 @@ namespace Markdown
             IReader reader = new MdReader();
             var text = reader.ReadLines(parsedArguments.InputFileName);
             IWriter writer = new HttpFileWriter();
-            writer.Write(Processor.Parse(text.ToArray()), parsedArguments.OutputFileName);
+            IProcessor processor = new RecursiveProcessor();
+            writer.Write(processor.Parse(text.ToArray()), parsedArguments.OutputFileName);
         }
     }
 }

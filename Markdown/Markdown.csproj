@@ -49,11 +49,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgParser.cs" />
-    <Compile Include="MdReader.cs" />
-    <Compile Include="HttpFileWriter.cs" />
-    <Compile Include="IReader.cs" />
-    <Compile Include="IWriter.cs" />
-    <Compile Include="Processor.cs" />
+    <Compile Include="Processors\IProcessor.cs" />
+    <Compile Include="Readers\MdReader.cs" />
+    <Compile Include="Writers\HttpFileWriter.cs" />
+    <Compile Include="Readers\IReader.cs" />
+    <Compile Include="Writers\IWriter.cs" />
+    <Compile Include="Processors\RecursiveProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
