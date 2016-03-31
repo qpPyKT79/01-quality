@@ -1,24 +1,5 @@
 # Качество кода
 
-## Домашка 1. Чистый код
-
-* Пройти [The Clean Code Game](http://cleancodegame.github.io)
-* Прочитать ["Чистый код"](http://bit.ly/1Dwre5P) Роберта Мартина или её [краткий конспект](http://slidesha.re/1DTGjwg)
-* Пройти [онлайн практикум](http://bit.ly/1CL8XT8) по языку запросов LINQ
-
-## Домашка 2. Освоение Git
-
-От простых и поверхностных способов к более сложным и глубоким:
-
-1. Пройти [супер-краткий гайд](http://rogerdudler.github.io/git-guide/)
-2. Скачать на рабочий стол [Git Cheat Sheet](git_cheat_sheet.pdf)
-3. Пройти [интерактивный учебный курс](https://try.github.io) от github и schoolacademy по основам git.
-4. Решить [практическую задачу](https://github.com/kontur-edu/git-merge-task) на работу с ветками.
-5. Пройти игру-квест https://github.com/hgarc014/git-game
-6. Пройти интерактивную игру про работу с ветками http://pcottle.github.io/learnGitBranching/
-7. Прочитать официальную книгу по git: http://git-scm.com/book/ru/v2 (первые три главы обязательны)
-
-## Домашка 3. Задача на программирование
 
 Напишите процессор простого markdown-подобного языка разметки.
 
